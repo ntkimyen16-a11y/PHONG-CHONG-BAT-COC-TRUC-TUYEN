@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện tập An toàn Online</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tải font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Sử dụng font Inter làm font chữ mặc định */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4; /* Nền Green-50 (Xanh lá rất nhạt) */
+        }
+        /* Hiệu ứng chuyển động mượt mà cho các nút */
+        .btn-transition {
+            transition: all 0.2s ease-in-out;
+        }
+
+        /*
+        Định nghĩa màu sắc chủ đạo mới:
+        P1: Green (Xanh lá)
+        P2: Orange (Cam)
+        P3: Lime (Xanh nõn chuối/Vàng chanh)
+        */
+
+        /* CSS cho thông báo phản hồi */
+        .feedback-toast {
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s 0.5s, opacity 0.5s linear;
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.5s ease-in-out;
+        }
+        .feedback-toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 2rem;
+            transition-delay: 0s;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="bg-white w-full max-w-lg p-6 md:p-8 rounded-3xl shadow-xl border border-green-200">
+
+        <!-- Màn hình 1: Menu Chính -->
+        <div id="start-screen" class="text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-green-800 mb-4">Luyện Tập An Toàn Online</h1>
+            <p class="text-gray-600 mb-8 font-medium">Vui lòng chọn một phần để bắt đầu:</p>
+            
+            <div class="space-y-4">
+                <button id="start-quiz-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-xl shadow-md hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-70 btn-transition transform hover:scale-105 text-3xl">
+                    Phần 1: Trắc nghiệm Nhận diện
+                </button>
+                <button id="start-assessment-btn" class="w-full bg-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-300 focus:ring-opacity-70 btn-transition transform hover:scale-105 text-3xl">
+                    Phần 2: Khảo sát Rủi ro Cá nhân
+                </button>
+                <button id="start-training-btn" class="w-full bg-lime-600 text-white font-bold py-4 px-6 rounded-xl shadow-md hover:bg-lime-700 focus:outline-none focus:ring-4 focus:ring-lime-300 focus:ring-opacity-70 btn-transition transform hover:scale-105 text-3xl">
+                    Phần 3: Khảo sát Kỹ năng Phản ứng
+                </button>
+            </div>
+        </div>
+
+        <!-- Màn hình 2: Quiz Tình huống (Phần 1 - GREEN) -->
+        <div id="quiz-screen" class="hidden">
+            <p class="text-center text-sm font-bold text-green-700 mb-4">PHẦN 1: TRẮC NGHIỆM NHẬN DIỆN</p>
+            <div class="mb-6">
+                <p class="text-sm font-medium text-green-600 mb-2">Tình huống (<span id="current-question">1</span> / <span id="total-questions">10</span>)</p>
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200 min-h-[100px]">
+                    <p id="scenario-text" class="text-gray-800 text-3xl font-medium"></p>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <!-- THAY ĐỔI: Chuyển màu Đỏ (Red) sang Xanh (Green) -->
+                <button data-answer="Đe dọa" class="answer-btn w-full text-left p-4 rounded-xl border-2 border-green-200 hover:border-green-500 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-400 btn-transition">
+                    <h3 class="text-3xl font-bold text-green-700">Đe dọa (Threats)</h3>
+                </button>
+                <!-- Màu Thao túng (Manipulation) dùng màu Green đậm hơn (Giữ nguyên) -->
+                <button data-answer="Thao túng" class="answer-btn w-full text-left p-4 rounded-xl border-2 border-green-200 hover:border-green-500 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-400 btn-transition">
+                    <h3 class="text-3xl font-bold text-green-700">Thao túng (Manipulation)</h3>
+                </button>
+                <!-- THAY ĐỔI: Chuyển màu Vàng chanh (Lime) sang Xanh (Green) -->
+                <button data-answer="Dụ dỗ" class="answer-btn w-full text-left p-4 rounded-xl border-2 border-green-200 hover:border-green-500 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-400 btn-transition">
+                    <h3 class="text-3xl font-bold text-green-700">Dụ dỗ (Luring)</h3>
+                </button>
+            </div>
+        </div>
+
+        <!-- Màn hình 3: Khảo sát Rủi ro (Phần 2 - ORANGE) -->
+        <div id="assessment-screen" class="hidden">
+            <p class="text-center text-sm font-bold text-orange-700 mb-4">PHẦN 2: KHẢO SÁT RỦI RO CÁ NHÂN</p>
+            <div class="mb-6">
+                <p class="text-sm font-medium text-orange-600 mb-2">Câu hỏi (<span id="current-assessment-q">1</span> / <span id="total-assessment-q">10</span>)</p>
+                <div class="bg-orange-50 p-4 rounded-xl border border-orange-200 min-h-[100px]">
+                    <p id="assessment-q-text" class="text-gray-800 text-3xl font-medium"></p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <!-- Yes - Nguy hiểm (Orange đậm) -->
+                <button id="assessment-yes-btn" class="w-full bg-orange-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 btn-transition transform hover:scale-105 text-3xl">
+                    Có
+                </button>
+                <!-- No - An toàn (Green) -->
+                <button id="assessment-no-btn" class="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 btn-transition transform hover:scale-105 text-3xl">
+                    Không
+                </button>
+            </div>
+        </div>
+        
+        <!-- Màn hình 4: Khảo sát Kỹ năng Phản ứng (Phần 3 - LIME) -->
+        <div id="training-assessment-screen" class="hidden">
+            <p class="text-center text-sm font-bold text-lime-700 mb-4">PHẦN 3: KHẢO SÁT KỸ NĂNG PHẢN ỨNG</p>
+            <div class="mb-6">
+                <p class="text-sm font-medium text-lime-600 mb-2">Tình huống (<span id="current-training-q">1</span> / <span id="total-training-q">10</span>)</p>
+                <div class="bg-lime-50 p-4 rounded-xl border border-lime-200 min-h-[120px]">
+                    <p id="training-q-scenario" class="text-gray-800 text-3xl font-semibold mb-3"></p>
+                    <p id="training-q-text" class="text-gray-700 text-xl"></p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <button data-action="0" class="training-action-btn w-full text-left p-4 rounded-xl border-2 border-lime-200 hover:border-lime-500 hover:bg-lime-50 focus:outline-none focus:ring-2 focus:ring-lime-400 btn-transition text-3xl">
+                    <span class="font-medium">Hành động A: </span><span id="action-a-text"></span>
+                </button>
+                <button data-action="1" class="training-action-btn w-full text-left p-4 rounded-xl border-2 border-lime-200 hover:border-lime-500 hover:bg-lime-50 focus:outline-none focus:ring-2 focus:ring-lime-400 btn-transition text-3xl">
+                    <span class="font-medium">Hành động B: </span><span id="action-b-text"></span>
+                </button>
+                <button data-action="2" class="training-action-btn w-full text-left p-4 rounded-xl border-2 border-lime-200 hover:border-lime-500 hover:bg-lime-50 focus:outline-none focus:ring-2 focus:ring-lime-400 btn-transition text-3xl">
+                    <span class="font-medium">Hành động C: </span><span id="action-c-text"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Màn hình 5: Kết quả Phần 1 (Quiz - GREEN) -->
+        <div id="quiz-results-screen" class="hidden text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-green-700 mb-4">Kết quả Phần 1</h1>
+            <div class="bg-green-50 border border-green-200 p-4 rounded-xl mb-6">
+                <h2 class="text-lg font-bold text-green-700 mb-2">Kiến thức Nhận diện (Quiz)</h2>
+                <p class="text-2xl font-bold text-green-600">
+                    <span id="final-quiz-score">0</span> / 10
+                </p>
+            </div>
+            <p class="text-gray-600 mb-8 font-medium" id="final-quiz-message"></p>
+            <button id="restart-quiz-btn" class="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 btn-transition transform hover:scale-105 mb-3">
+                Làm lại Phần 1
+            </button>
+            <button class="back-to-menu-btn w-full bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-xl hover:bg-gray-300 btn-transition">
+                Quay về Menu
+            </button>
+        </div>
+        
+        <!-- Màn hình 6: Kết quả Phần 2 (Assessment - ORANGE) -->
+        <div id="assessment-results-screen" class="hidden text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-orange-800 mb-4">Kết quả Phần 2</h1>
+            <div class="bg-orange-50 border border-orange-200 p-4 rounded-xl mb-6">
+                <h2 class="text-lg font-bold text-orange-700 mb-2">Mức độ Rủi ro (Thói quen)</h2>
+                <p class="text-2xl font-bold text-orange-600">
+                    <span id="final-risk-score">0</span> / 10
+                </p>
+                <p class="text-gray-700 font-medium mt-2" id="final-risk-message"></p>
+            </div>
+            <p class="text-gray-600 mb-8 font-medium" id="final-risk-advice"></p>
+            <button id="goto-training-btn" class="w-full bg-lime-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-opacity-50 btn-transition transform hover:scale-105 mb-3">
+                Xem Phần 3: Khảo sát Kỹ năng Phản ứng
+            </button>
+            <button id="restart-assessment-btn" class="w-full bg-orange-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 btn-transition transform hover:scale-105 mb-3">
+                Làm lại Phần 2
+            </button>
+            <button class="back-to-menu-btn w-full bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-xl hover:bg-gray-300 btn-transition">
+                Quay về Menu
+            </button>
+        </div>
+        
+        <!-- Màn hình 7: Kết quả Phần 3 (Training Assessment - LIME) -->
+        <div id="training-results-screen" class="hidden text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-lime-700 mb-4">Kết quả Phần 3</h1>
+            <div class="bg-lime-50 border border-lime-200 p-4 rounded-xl mb-6">
+                <h2 class="text-lg font-bold text-lime-700 mb-2">Điểm Kỹ năng Phản ứng</h2>
+                <p class="text-2xl font-bold text-lime-600">
+                    <span id="final-training-score">0</span> / 10
+                </p>
+            </div>
+            <p class="text-gray-600 mb-8 font-medium" id="final-training-message"></p>
+            <button id="restart-training-btn" class="w-full bg-lime-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-opacity-50 btn-transition transform hover:scale-105 mb-3">
+                Luyện tập lại Phần 3
+            </button>
+            <button class="back-to-menu-btn w-full bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-xl hover:bg-gray-300 btn-transition">
+                Quay về Menu
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Thông báo Phản hồi (Toast) -->
+    <div id="feedback-toast" class="feedback-toast p-4 rounded-xl shadow-lg text-white font-medium max-w-md w-11/12 text-center">
+        <p id="feedback-text"></p>
+        <p id="feedback-specific" class="text-sm opacity-90 mt-1"></p>
+    </div>
+
+    <script>
+        // --- Dữ liệu Câu hỏi Quiz (Phần 1) ---
+        const scenarios = [
+            { scenario: "Email báo tài khoản bị xâm nhập, đòi tiền chuộc video nhạy cảm.", category: "Đe dọa", specific: "Sử dụng SỢ HÃI" },
+            { scenario: "Người xưng 'cảnh sát mạng' báo bạn vi phạm luật, đòi nộp phạt qua thẻ cào.", category: "Đe dọa", specific: "Đe dọa pháp lý giả" },
+            { scenario: "Kẻ xấu có bí mật của bạn, đe dọa nói cho gia đình nếu không làm theo.", category: "Đe dọa", specific: "Tống tiền" },
+            { scenario: "Tin nhắn từ 'ngân hàng' với logo sai lệch, yêu cầu 'xác nhận' thông tin khẩn cấp.", category: "Thao túng", specific: "Gây NHẦM LẪN" },
+            { scenario: "Bạn mới online yêu cầu bạn báo cáo mọi thứ và không được nói chuyện với ai khác.", category: "Thao túng", specific: "Tạo sự phụ thuộc" },
+            { scenario: "Quảng cáo 'làm giàu nhanh' chỉ cần đầu tư một khoản nhỏ 'cơ hội đặc biệt'.", category: "Thao túng", specific: "Giải pháp giả" },
+            { scenario: "Hồ sơ giả giống hệt bạn của bạn nhắn tin nhờ mượn tiền vì 'khẩn cấp'.", category: "Dụ dỗ", specific: "Dựa vào LÒNG TIN" },
+            { scenario: "Người lạ kết bạn, trò chuyện thân thiết, sau một thời gian thì nhờ giúp đỡ tài chính.", category: "Dụ dỗ", specific: "Tình bạn giả" },
+            { scenario: "Thông báo trúng điện thoại mới, chỉ cần điền thông tin và đóng 'phí vận chuyển'.", category: "Dụ dỗ", specific: "Hứa tặng quà" },
+            { scenario: "Đồng nghiệp gửi file 'Bảng lương.xlsx' qua chat, yêu cầu cấp quyền 'macros' để xem.", category: "Dụ dỗ", specific: "Dựa vào LÒNG TIN" }
+        ];
+
+        // --- Dữ liệu Câu hỏi Khảo sát (Phần 2) ---
+        const assessmentQuestions = [
+            { question: "Tài khoản mạng xã hội của bạn (Facebook, TikTok, v.v.) có đang để ở chế độ công khai không?", answerValue: 1 },
+            { question: "Bạn có thường chấp nhận lời mời kết bạn từ những người bạn không quen biết ngoài đời thực không?", answerValue: 1 },
+            { question: "Bạn có thường xuyên chia sẻ vị trí (check-in) hoặc kế hoạch cá nhân của mình một cách công khai không?", answerValue: 1 },
+            { question: "Bạn có bao giờ chia sẻ thông tin nhạy cảm (số điện thoại, địa chỉ nhà) cho người mới quen trên mạng không?", answerValue: 1 },
+            { question: "Bạn có bao giờ bật webcam hoặc gửi ảnh/video nhạy cảm cho người mà bạn chưa từng gặp mặt trực tiếp không?", answerValue: 1 },
+            { question: "Bạn có cảm thấy khó khăn khi từ chối một yêu cầu \"giúp đỡ\" hoặc một \"món quà\" từ người lạ trên mạng không?", answerValue: 1 },
+            { question: "Bạn có bao giờ lên kế hoạch hoặc có ý định gặp mặt ngoài đời thật với một người mà bạn chỉ quen qua mạng không?", answerValue: 1 },
+            { question: "Bạn có bao giờ cố tình giấu bố mẹ (hoặc người giám hộ) về những người bạn nói chuyện hoặc những gì bạn làm trên mạng không?", answerValue: 1 },
+            { question: "Bạn có dùng chung MỘT mật khẩu cho nhiều tài khoản quan trọng (như mạng xã hội, email, ngân hàng) không?", answerValue: 1 },
+            { question: "Bạn có hay nhấp vào các liên kết lạ hứa hẹn quà tặng, tiền thưởng hoặc vật phẩm game miễn phí không?", answerValue: 1 }
+        ];
+        
+        // --- Dữ liệu Khảo sát Kỹ năng Phản ứng (Phần 3) ---
+        const trainingQuestions = [
+            {
+                scenario: "Một người lạ trên game yêu cầu bạn bật webcam để làm quen và trò chuyện, hứa sẽ tặng bạn vật phẩm giá trị trong game.",
+                question: "Bạn nên làm gì?",
+                actions: [
+                    "A. Đồng ý bật webcam nhưng không cho thấy mặt, chỉ nói chuyện bằng giọng.",
+                    "B. Từ chối yêu cầu, chặn tài khoản đó và báo cáo với người lớn/nền tảng game.", // CORRECT (1)
+                    "C. Bật webcam một lúc rồi tắt ngay sau khi nhận được vật phẩm."
+                ],
+                correctAction: 1,
+                explanation: "Hành động đúng là (B). Bất kỳ yêu cầu về webcam hoặc nội dung cá nhân từ người lạ đều là dấu hiệu đỏ của dụ dỗ. Bạn cần chặn ngay lập tức và tìm kiếm sự trợ giúp."
+            },
+            {
+                scenario: "Bạn nhận được email khẩn cấp từ 'Ngân hàng' yêu cầu nhấp vào liên kết để 'xác minh thông tin tài khoản' ngay lập tức, nếu không tài khoản sẽ bị khóa.",
+                question: "Hành động tốt nhất để đảm bảo an toàn là gì?",
+                actions: [
+                    "A. Nhấp vào liên kết, nhưng chỉ điền mật khẩu mà không điền bất kỳ thông tin cá nhân nào khác.",
+                    "B. Bỏ qua email và gọi điện trực tiếp lên tổng đài chính thức của Ngân hàng để hỏi.", // CORRECT (1)
+                    "C. Chuyển tiếp email đó cho bạn bè để hỏi xem họ có nhận được email tương tự không."
+                ],
+                correctAction: 1,
+                explanation: "Hành động đúng là (B). Ngân hàng thật sẽ không bao giờ yêu cầu xác minh thông tin qua email. Tự gọi điện là cách an toàn nhất để xác minh tình trạng tài khoản."
+            },
+            {
+                scenario: "Tài khoản mạng xã hội của bạn bị một kẻ xấu đe dọa sẽ tung tin đồn thất thiệt về bạn nếu bạn không chuyển một khoản tiền nhỏ vào tài khoản họ.",
+                question: "Bạn nên phản ứng thế nào?",
+                actions: [
+                    "A. Chuyển tiền để đổi lấy sự im lặng và hy vọng chuyện sẽ kết thúc.",
+                    "B. Chặn tài khoản đó ngay lập tức, chụp lại bằng chứng và báo cáo cho bố mẹ hoặc giáo viên/người lớn tin cậy.", // CORRECT (1)
+                    "C. Trả lời tin nhắn và cố gắng thương lượng để giảm số tiền phải trả."
+                ],
+                correctAction: 1,
+                explanation: "Hành động đúng là (B). Việc trả tiền sẽ không ngăn được kẻ tống tiền mà chỉ khuyến khích chúng tiếp tục. Cần chặn ngay, thu thập bằng chứng và tìm sự giúp đỡ từ người lớn."
+            },
+            {
+                scenario: "Bạn và bạn thân có một bộ mật khẩu chung cho một trò chơi online quan trọng. Bạn thân đề nghị bạn sử dụng mật khẩu đó cho cả tài khoản email cá nhân của bạn.",
+                question: "Bạn nên trả lời bạn thân như thế nào?",
+                actions: [
+                    "A. Đồng ý vì đó là bạn thân và chỉ là email thôi.",
+                    "B. Từ chối và giải thích rằng mỗi tài khoản cần một mật khẩu độc lập để bảo vệ dữ liệu cá nhân nếu game bị tấn công.", // CORRECT (1)
+                    "C. Thay đổi mật khẩu game thành mật khẩu khác và giữ bí mật."
+                ],
+                correctAction: 1,
+                explanation: "Hành động đúng là (B). Việc dùng chung mật khẩu cho nhiều dịch vụ là rủi ro bảo mật lớn nhất. Cần duy trì mật khẩu độc lập cho mỗi tài khoản, đặc biệt là email."
+            },
+            {
+                scenario: "Bạn tình cờ thấy một tin nhắn từ người bạn không quen biết đang nói chuyện với một người lớn lạ mặt khác, trong đó người lạ mặt yêu cầu người bạn kia cung cấp ảnh gia đình.",
+                question: "Bạn nên làm gì?",
+                actions: [
+                    "A. Chụp màn hình cuộc trò chuyện và đăng lên mạng xã hội để cảnh báo mọi người.",
+                    "B. Lờ đi vì đó không phải là việc của mình.",
+                    "C. Báo cáo tình huống này (kèm bằng chứng) ngay lập tức cho người lớn có trách nhiệm (như giáo viên, phụ huynh của bạn hoặc của người bạn kia).", // CORRECT (2)
+                ],
+                correctAction: 2,
+                explanation: "Hành động đúng là (C). Đây là hành vi nguy hiểm. Cần hành động nhanh chóng và kín đáo để bảo vệ nạn nhân bằng cách báo cho người có thẩm quyền/người lớn tin cậy."
+            },
+            // --- 5 Câu hỏi Bổ sung ---
+            {
+                scenario: "Bạn đang lướt web và thấy một cửa sổ pop-up khổng lồ hiện ra thông báo máy tính của bạn bị nhiễm virus trầm trọng, kèm theo nút 'NHẤP VÀO ĐÂY ĐỂ SỬA NGAY'.",
+                question: "Hành động đúng đắn của bạn là gì?",
+                actions: [
+                    "A. Nhấp vào nút 'SỬA NGAY' để pop-up biến mất và máy tính không bị hỏng.",
+                    "B. Tắt trình duyệt hoặc đóng tab đó NGAY LẬP TỨC và chạy phần mềm diệt virus chính thức của bạn.", // CORRECT (1)
+                    "C. Ghi lại số điện thoại trên pop-up và gọi điện cho họ để nhờ hỗ trợ kỹ thuật."
+                ],
+                correctAction: 1,
+                explanation: "Hành động đúng là (B). Các thông báo virus giả mạo là chiêu trò phổ biến để cài phần mềm độc hại (malware). Bạn không bao giờ nên nhấp vào chúng."
+            },
+            {
+                scenario: "Bạn vừa tạo tài khoản mạng xã hội mới và đăng một bức ảnh. Một người lạ nhảy vào bình luận đòi bạn cung cấp số điện thoại để 'tham gia nhóm bạn bè đặc biệt'.",
+                question: "Bạn nên làm gì?",
+                actions: [
+                    "A. Cung cấp số điện thoại nhưng yêu cầu họ phải thêm bạn trước.",
+                    "B. Trả lời rằng bạn không thể cho số điện thoại vì bạn chưa biết họ.",
+                    "C. Xóa bình luận, chuyển tài khoản về chế độ riêng tư và chặn người đó.", // CORRECT (2)
+                ],
+                correctAction: 2,
+                explanation: "Hành động đúng là (C). Việc công khai thông tin cá nhân cho người lạ là rất rủi ro. Chặn và chuyển về chế độ riêng tư là giải pháp bảo vệ tối ưu nhất."
+            },
+            {
+                scenario: "Bạn nhận được tin nhắn từ số lạ, xưng là bạn cũ nhưng đã mất số, và yêu cầu bạn gửi mã xác minh OTP (One-Time Password) mà điện thoại bạn vừa nhận được.",
+                question: "Hành động an toàn nhất là gì?",
+                actions: [
+                    "A. Gửi mã OTP đó và hỏi người đó là ai.",
+                    "B. Hoàn toàn không gửi mã OTP, chặn số điện thoại đó ngay lập tức và báo cáo cho người lớn.", // CORRECT (1)
+                    "C. Gửi mã nhưng cảnh báo họ không được sử dụng nó cho mục đích xấu."
+                ],
+                correctAction: 1,
+                explanation: "Hành động đúng là (B). OTP là chìa khóa để truy cập tài khoản của bạn. Bất kỳ ai đòi hỏi OTP đều là kẻ lừa đảo, bạn phải chặn và báo cáo ngay."
+            },
+            {
+                scenario: "Bạn vừa đăng ký một trang web mới. Trang web yêu cầu bạn chọn một mật khẩu. Bạn đang nghĩ đến mật khẩu '12345678'.",
+                question: "Làm thế nào để tạo một mật khẩu an toàn và dễ nhớ?",
+                actions: [
+                    "A. Dùng mật khẩu '12345678' và viết nó ra một tờ giấy dán trên màn hình.",
+                    "B. Dùng một cụm từ dài không liên quan đến bạn (ví dụ: 'HatPantsTreeCloud') và thêm ký tự đặc biệt/số ('HatPantsTreeCloud!2025').", // CORRECT (1)
+                    "C. Dùng tên của thú cưng hoặc người thân và thêm một số năm sinh ở cuối."
+                ],
+                correctAction: 1,
+                explanation: "Hành động đúng là (B). Mật khẩu mạnh nên dài, phức tạp (chữ hoa, chữ thường, số, ký tự đặc biệt) và KHÔNG liên quan đến thông tin cá nhân dễ đoán."
+            },
+            {
+                scenario: "Khi duyệt web, bạn thấy một ô trống yêu cầu nhập thông tin thẻ tín dụng để 'xác nhận bạn là người thật' trước khi xem video.",
+                question: "Bạn nên làm gì?",
+                actions: [
+                    "A. Nhập thông tin thẻ nhưng chỉ nhập một lần, không nhập lại lần thứ hai.",
+                    "B. Đóng trình duyệt ngay lập tức và tuyệt đối không nhập bất kỳ thông tin tài chính nào vào các trang web không đáng tin cậy.", // CORRECT (1)
+                    "C. Nhập số thẻ nhưng bỏ trống 3 số CVC/CVV ở mặt sau."
+                ],
+                correctAction: 1,
+                explanation: "Hành động đúng là (B). Không bao giờ nhập thông tin thanh toán hoặc tài chính cho các mục đích không liên quan (như xác minh tuổi, xem video miễn phí). Đây là lừa đảo (phishing) nhằm ăn cắp tiền của bạn."
+            }
+        ];
+
+        // --- Biến Trạng thái ---
+        let currentQuizIndex = 0;
+        let quizScore = 0; 
+        let shuffledScenarios = [];
+        let currentAssessmentIndex = 0;
+        let riskScore = 0; 
+        let currentTrainingIndex = 0; 
+        let trainingScore = 0; 
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const assessmentScreen = document.getElementById('assessment-screen');
+        const trainingAssessmentScreen = document.getElementById('training-assessment-screen'); 
+        const quizResultsScreen = document.getElementById('quiz-results-screen');
+        const assessmentResultsScreen = document.getElementById('assessment-results-screen');
+        const trainingResultsScreen = document.getElementById('training-results-screen'); 
+
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const startAssessmentBtn = document.getElementById('start-assessment-btn');
+        const startTrainingBtn = document.getElementById('start-training-btn'); 
+        const gotoTrainingBtn = document.getElementById('goto-training-btn'); 
+        
+        const answerBtns = document.querySelectorAll('.answer-btn');
+        const assessmentYesBtn = document.getElementById('assessment-yes-btn');
+        const assessmentNoBtn = document.getElementById('assessment-no-btn');
+        const trainingActionBtns = document.querySelectorAll('.training-action-btn'); 
+        
+        const restartQuizBtn = document.getElementById('restart-quiz-btn');
+        const restartAssessmentBtn = document.getElementById('restart-assessment-btn');
+        const restartTrainingBtn = document.getElementById('restart-training-btn'); 
+        const backToMenuBtns = document.querySelectorAll('.back-to-menu-btn');
+
+        // Quiz elements
+        const scenarioText = document.getElementById('scenario-text');
+        const currentQuestionEl = document.getElementById('current-question');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const finalQuizScoreEl = document.getElementById('final-quiz-score');
+        const finalQuizMessageEl = document.getElementById('final-quiz-message');
+
+        // Assessment elements
+        const currentAssessmentQEl = document.getElementById('current-assessment-q');
+        const totalAssessmentQEl = document.getElementById('total-assessment-q');
+        const assessmentQText = document.getElementById('assessment-q-text');
+        const finalRiskScoreEl = document.getElementById('final-risk-score');
+        const finalRiskMessageEl = document.getElementById('final-risk-message');
+        const finalRiskAdviceEl = document.getElementById('final-risk-advice');
+        
+        // Training Assessment elements
+        const currentTrainingQEl = document.getElementById('current-training-q');
+        const totalTrainingQEl = document.getElementById('total-training-q');
+        const trainingQScenarioEl = document.getElementById('training-q-scenario');
+        const trainingQTextEl = document.getElementById('training-q-text');
+        const actionATextEl = document.getElementById('action-a-text');
+        const actionBTextEl = document.getElementById('action-b-text');
+        const actionCTextEl = document.getElementById('action-c-text');
+        const finalTrainingScoreEl = document.getElementById('final-training-score');
+        const finalTrainingMessageEl = document.getElementById('final-training-message');
+
+
+        // Toast
+        const feedbackToast = document.getElementById('feedback-toast');
+        const feedbackText = document.getElementById('feedback-text');
+        const feedbackSpecific = document.getElementById('feedback-specific');
+
+        // --- Hàm Logic ---
+
+        // Hàm chung: Ẩn tất cả các màn hình
+        function hideAllScreens() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            assessmentScreen.classList.add('hidden');
+            trainingAssessmentScreen.classList.add('hidden'); 
+            quizResultsScreen.classList.add('hidden');
+            assessmentResultsScreen.classList.add('hidden');
+            trainingResultsScreen.classList.add('hidden'); 
+        }
+        
+        // Hàm: Quay về Menu
+        function goToMenu() {
+            hideAllScreens();
+            startScreen.classList.remove('hidden');
+        }
+
+        // Xáo trộn mảng
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- Logic Phần 1: Quiz ---
+        function startQuiz() {
+            currentQuizIndex = 0;
+            quizScore = 0;
+            shuffledScenarios = shuffleArray([...scenarios]); 
+            totalQuestionsEl.textContent = shuffledScenarios.length;
+            hideAllScreens();
+            quizScreen.classList.remove('hidden');
+            displayQuizQuestion();
+        }
+
+        function displayQuizQuestion() {
+            if (currentQuizIndex < shuffledScenarios.length) {
+                const question = shuffledScenarios[currentQuizIndex];
+                scenarioText.textContent = question.scenario;
+                currentQuestionEl.textContent = currentQuizIndex + 1;
+                resetQuizButtonStates();
+            } else {
+                showQuizResults();
+            }
+        }
+        
+        function resetQuizButtonStates() {
+            answerBtns.forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('border-green-500', 'bg-green-100', 'border-red-500', 'bg-red-100', 'opacity-50');
+                btn.classList.add('border-green-200'); /* Green border */
+                
+                // Re-apply specific hover colors based on new theme
+                btn.classList.remove('hover:border-rose-500', 'hover:bg-rose-50', 'hover:border-indigo-500', 'hover:bg-indigo-50', 'hover:border-emerald-500', 'hover:bg-emerald-50', 'hover:border-yellow-500', 'hover:bg-yellow-50');
+                btn.classList.remove('hover:border-teal-500', 'hover:bg-teal-50');
+
+                // THAY ĐỔI: Xóa logic if/else và áp dụng một kiểu hover thống nhất (màu xanh lá)
+                btn.classList.add('hover:border-green-500', 'hover:bg-green-50');
+            });
+        }
+
+        function showFeedback(isCorrect, message) {
+            // Đặt màu cho Toast
+            const colorClass = isCorrect ? "bg-green-600" : "bg-red-600";
+
+            feedbackText.textContent = isCorrect ? "Chính xác!" : "Chưa đúng!";
+            feedbackSpecific.textContent = message;
+            
+            feedbackToast.className = `feedback-toast show ${colorClass} p-4 rounded-xl shadow-lg text-white font-medium max-w-md w-11/12 text-center`;
+            
+            // Tắt Toast sau 3.5 giây (Lớn hơn thời gian chờ chuyển câu hỏi)
+            setTimeout(() => { feedbackToast.classList.remove('show'); }, 3500);
+        }
+
+        function handleQuizAnswerClick(event) {
+            const selectedAnswer = event.currentTarget.dataset.answer;
+            const currentScenario = shuffledScenarios[currentQuizIndex];
+            const correctAnswer = currentScenario.category;
+            const specificTactic = currentScenario.specific;
+            const isCorrect = selectedAnswer === correctAnswer;
+
+            answerBtns.forEach(btn => {
+                btn.disabled = true;
+                // Remove all hover/focus colors before disabling
+                // THAY ĐỔI: Cập nhật danh sách class để xóa cho thống nhất
+                btn.classList.remove('hover:border-red-500', 'hover:bg-red-50', 'hover:border-green-500', 'hover:bg-green-50', 'hover:border-lime-500', 'hover:bg-lime-50');
+            });
+
+            if (isCorrect) {
+                quizScore++;
+                event.currentTarget.classList.add('border-green-500', 'bg-green-100');
+            } else {
+                event.currentTarget.classList.add('border-red-500', 'bg-red-100');
+                // Highlight correct answer
+                document.querySelector(`.answer-btn[data-answer="${correctAnswer}"]`).classList.add('border-green-500', 'bg-green-100');
+            }
+
+            showFeedback(isCorrect, `Đáp án đúng là "${correctAnswer}". Chiến thuật cụ thể: ${specificTactic}.`);
+
+            setTimeout(() => {
+                currentQuizIndex++;
+                displayQuizQuestion();
+            }, 4000);
+        }
+
+        function showQuizResults() {
+            finalQuizScoreEl.textContent = quizScore;
+            
+            let message = "";
+            if (quizScore === scenarios.length) message = "Tuyệt vời! Bạn đã nhận diện rất tốt các mối nguy hiểm.";
+            else if (quizScore >= scenarios.length * 0.7) message = "Làm tốt lắm! Bạn có kiến thức tốt để giữ an toàn.";
+            else if (quizScore >= scenarios.length * 0.4) message = "Bạn đã cố gắng! Hãy luyện tập thêm để nhạy bén hơn nhé.";
+            else message = "Không sao cả! Luyện tập chính là chìa khóa. Hãy thử lại nào!";
+            finalQuizMessageEl.textContent = message;
+
+            hideAllScreens();
+            quizResultsScreen.classList.remove('hidden');
+        }
+
+        // --- Logic Phần 2: Khảo sát ---
+        function startAssessment() {
+            currentAssessmentIndex = 0;
+            riskScore = 0;
+            totalAssessmentQEl.textContent = assessmentQuestions.length;
+            hideAllScreens();
+            assessmentScreen.classList.remove('hidden');
+            displayAssessmentQuestion();
+        }
+
+        function displayAssessmentQuestion() {
+            if (currentAssessmentIndex < assessmentQuestions.length) {
+                const question = assessmentQuestions[currentAssessmentIndex];
+                assessmentQText.textContent = question.question;
+                currentAssessmentQEl.textContent = currentAssessmentIndex + 1;
+            } else {
+                showAssessmentResults(); 
+            }
+        }
+
+        function handleAssessmentAnswer(didClickYes) {
+            const question = assessmentQuestions[currentAssessmentIndex];
+            // Câu trả lời "Có" thường tăng điểm rủi ro
+            if (question.answerValue === 1 && didClickYes) { 
+                riskScore++;
+            }
+            currentAssessmentIndex++;
+            displayAssessmentQuestion();
+        }
+
+        function showAssessmentResults() {
+            finalRiskScoreEl.textContent = riskScore;
+            
+            let riskMessage = ""; 
+            let advice = "";
+            if (riskScore >= 7) {
+                riskMessage = "Mức độ rủi ro: RẤT CAO";
+                advice = "Thói quen online của bạn đang tiềm ẩn nhiều nguy hiểm. Bạn cần xem lại ngay các cài đặt bảo mật và cẩn thận hơn rất nhiều khi tương tác trên mạng.";
+            } else if (riskScore >= 4) {
+                riskMessage = "Mức độ rủi ro: CAO";
+                advice = "Bạn có một vài thói quen rủi ro. Hãy cẩn thận hơn khi chia sẻ thông tin cá nhân, kết bạn với người lạ và xem xét lại mật khẩu của mình.";
+            } else if (riskScore >= 1) {
+                riskMessage = "Mức độ rủi ro: TRUNG BÌNH";
+                advice = "Bạn khá cẩn thận, nhưng vẫn còn một vài điểm cần lưu ý. Hãy luôn nhớ không chia sẻ thông tin nhạy cảm và không gặp người lạ.";
+            } else {
+                riskMessage = "Mức độ rủi ro: THẤP";
+                advice = "Tuyệt vời! Bạn có thói quen online rất an toàn. Hãy tiếp tục phát huy và chia sẻ kiến thức này cho bạn bè nhé!";
+            }
+            finalRiskMessageEl.textContent = riskMessage;
+            finalRiskAdviceEl.textContent = advice;
+
+            hideAllScreens();
+            assessmentResultsScreen.classList.remove('hidden');
+        }
+        
+        // --- Logic Phần 3: Khảo sát Kỹ năng Phản ứng ---
+        function startTrainingAssessment() {
+            currentTrainingIndex = 0;
+            trainingScore = 0;
+            totalTrainingQEl.textContent = trainingQuestions.length;
+            hideAllScreens();
+            trainingAssessmentScreen.classList.remove('hidden');
+            displayTrainingQuestion();
+        }
+        
+        function displayTrainingQuestion() {
+            if (currentTrainingIndex < trainingQuestions.length) {
+                const question = trainingQuestions[currentTrainingIndex];
+                trainingQScenarioEl.textContent = question.scenario;
+                trainingQTextEl.textContent = question.question;
+                // Cập nhật nội dung các nút hành động (cắt bỏ ký tự A., B., C. đầu tiên)
+                actionATextEl.textContent = question.actions[0].substring(3); 
+                actionBTextEl.textContent = question.actions[1].substring(3); 
+                actionCTextEl.textContent = question.actions[2].substring(3); 
+                currentTrainingQEl.textContent = currentTrainingIndex + 1;
+                resetTrainingButtonStates();
+            } else {
+                showTrainingResults(); 
+            }
+        }
+        
+        function resetTrainingButtonStates() {
+            trainingActionBtns.forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('border-green-500', 'bg-green-100', 'border-red-500', 'bg-red-100', 'opacity-50');
+                btn.classList.add('border-lime-200'); /* Lime border */
+                btn.classList.add('hover:border-lime-500', 'hover:bg-lime-50'); /* Lime hover */
+            });
+        }
+
+        function handleTrainingAnswer(event) {
+            const selectedActionIndex = parseInt(event.currentTarget.dataset.action);
+            const currentQuestion = trainingQuestions[currentTrainingIndex];
+            const correctActionIndex = currentQuestion.correctAction;
+            const isCorrect = selectedActionIndex === correctActionIndex;
+            
+            // Vô hiệu hóa tất cả các nút hành động
+            trainingActionBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('hover:border-lime-500', 'hover:bg-lime-50');
+            });
+
+            // Tô màu kết quả
+            if (isCorrect) {
+                trainingScore++;
+                event.currentTarget.classList.add('border-green-500', 'bg-green-100');
+            } else {
+                event.currentTarget.classList.add('border-red-500', 'bg-red-100');
+                // Tô màu đáp án đúng
+                document.querySelector(`.training-action-btn[data-action="${correctActionIndex}"]`).classList.add('border-green-500', 'bg-green-100');
+            }
+            
+            // Hiển thị giải thích
+            showFeedback(isCorrect, currentQuestion.explanation);
+
+            // Chuyển câu hỏi
+            setTimeout(() => {
+                currentTrainingIndex++;
+                displayTrainingQuestion();
+            }, 4000);
+        }
+        
+        function showTrainingResults() {
+            finalTrainingScoreEl.textContent = trainingScore;
+            
+            let message = "";
+            if (trainingScore === trainingQuestions.length) message = "Xuất sắc! Bạn đã thành thạo kỹ năng phản ứng và biết phải làm gì trong các tình huống nguy hiểm.";
+            else if (trainingScore >= trainingQuestions.length * 0.7) message = "Rất tốt! Bạn có khả năng phản ứng nhanh và đúng trong hầu hết các tình huống.";
+            else if (trainingScore >= trainingQuestions.length * 0.4) message = "Cố gắng lên! Hãy xem lại các giải thích để học hỏi thêm về hành động an toàn nhất.";
+            else message = "Không sao cả! Việc luyện tập kỹ năng phản ứng là rất quan trọng. Hãy thử lại để nắm vững các nguyên tắc bảo vệ bản thân.";
+            
+            finalTrainingMessageEl.textContent = message;
+
+            hideAllScreens();
+            trainingResultsScreen.classList.remove('hidden');
+        }
+
+        // --- Gắn sự kiện ---
+        startQuizBtn.addEventListener('click', startQuiz);
+        startAssessmentBtn.addEventListener('click', startAssessment);
+        startTrainingBtn.addEventListener('click', startTrainingAssessment); 
+        gotoTrainingBtn.addEventListener('click', startTrainingAssessment); 
+        
+        restartQuizBtn.addEventListener('click', startQuiz); 
+        restartAssessmentBtn.addEventListener('click', startAssessment);  
+        restartTrainingBtn.addEventListener('click', startTrainingAssessment); 
+        
+        backToMenuBtns.forEach(btn => {
+            btn.addEventListener('click', goToMenu);
+        });
+        
+        answerBtns.forEach(btn => {
+            btn.addEventListener('click', handleQuizAnswerClick);
+        });
+        
+        assessmentYesBtn.addEventListener('click', () => handleAssessmentAnswer(true));
+        assessmentNoBtn.addEventListener('click', () => handleAssessmentAnswer(false));
+        
+        trainingActionBtns.forEach(btn => { 
+            btn.addEventListener('click', handleTrainingAnswer);
+        });
+
+    </script>
+</body>
+</html>
